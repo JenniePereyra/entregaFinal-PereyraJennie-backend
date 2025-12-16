@@ -1,0 +1,15 @@
+{
+    "name": "primerapreentrega-pereyrajennie",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "index.js",
+    "scripts": {
+        "start": "node src/app.js"
+    },
+    "dependencies": {
+        "express": "^4.19.2",
+        "express-handlebars": "^8.0.3",
+        "open": "^11.0.0",
+        "socket.io": "^4.8.1"
+    }
+}
