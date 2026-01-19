@@ -1,7 +1,19 @@
-<h1>Productos</h1>
-
-<ul>
-    {{#each products}}
-    <li>{{this.title}} - ${{this.price}}</li>
+<div id="products">
+    {{#each payload}}
+    <div>
+        <h3>{{this.title}}</h3>
+        <p>${{this.price}}</p>
+        <button onclick="fetch('/api/carts/1/products/{{this.id}}', { method: 'POST' })">
+            Agregar al carrito
+        </button>
+    </div>
     {{/each}}
-</ul>
+</div>
+
+{{#if hasPrevPage}}
+<a href="/products?page={{prevPage}}">Anterior</a>
+{{/if}}
+
+{{#if hasNextPage}}
+<a href="/products?page={{nextPage}}">Siguiente</a>
+{{/if}}

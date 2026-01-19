@@ -1,12 +1,22 @@
 [
   {
-    "id": 2,
+    "id": "2",
     "title": "Hamburguesa",
-    "price": 8000
+    "description": "Hamburguesa completa",
+    "price": 8000,
+    "category": "comida",
+    "status": true,
+    "stock": 20,
+    "thumbnails": []
   },
   {
-    "id": 3,
-    "title": "Lomito ",
-    "price": 10000
+    "id": "3",
+    "title": "Lomito",
+    "description": "Lomito completo",
+    "price": 10000,
+    "category": "comida",
+    "status": true,
+    "stock": 15,
+    "thumbnails": []
   }
 ]

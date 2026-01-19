@@ -1,49 +1,32 @@
 import express from "express";
-import { Server as HttpServer } from "http";
-import { Server as SocketIO } from "socket.io";
-import path from "path";
-import { fileURLToPath } from "url";
-import exphbs from "express-handlebars";
-import open from "open";
-
+import handlebars from "express-handlebars";
+import { Server } from "socket.io";
 import productsRouter from "./routes/products.router.js";
+import cartsRouter from "./routes/carts.router.js";
 import viewsRouter from "./routes/views.router.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import ProductManager from "./managers/ProductManager.js";
 
 const app = express();
-const httpServer = new HttpServer(app);
-const io = new SocketIO(httpServer);
+const productManager = new ProductManager("./src/data/products.json");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static("./src/public"));
 
-app.engine("handlebars", exphbs.engine());
+app.engine("handlebars", handlebars.engine());
+app.set("views", "./src/views");
 app.set("view engine", "handlebars");
-app.set("views", path.join(__dirname, "views"));
 
-
-app.use((req, res, next) => {
-    req.app.set("io", io);
-    next();
-});
-
-
-app.use("/api/products", productsRouter);
+app.use("/products", productsRouter);
+app.use("/api/carts", cartsRouter);
 app.use("/", viewsRouter);
 
+const httpServer = app.listen(8080);
+const io = new Server(httpServer);
 
-io.on("connection", (socket) => {
-    console.log("Cliente conectado");
-    socket.on("disconnect", () => {
-        console.log("Cliente desconectado");
-    });
+io.on("connection", async socket => {
+    const products = await productManager.getProducts();
+    socket.emit("products", products);
 });
 
-const PORT = 8080;
-httpServer.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
-    open(`http://localhost:${PORT}/realtimeproducts`);
-});
+export { io };

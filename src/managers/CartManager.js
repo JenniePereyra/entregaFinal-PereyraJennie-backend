@@ -1,63 +1,79 @@
-import fs from "fs";
-import ProductManager from "./ProductManager.js";
+import fs from "fs/promises";
 
-class CartManager {
-    constructor(path = "./carts.json") {
+export default class CartManager {
+    constructor(path) {
         this.path = path;
-        this.productManager = new ProductManager();
-        if (!fs.existsSync(this.path)) {
-            fs.writeFileSync(this.path, JSON.stringify([]));
+    }
+
+    async getCarts() {
+        try {
+            const data = await fs.readFile(this.path, "utf-8");
+            return JSON.parse(data);
+        } catch {
+            return [];
         }
     }
 
-    async getAll() {
-        const data = await fs.promises.readFile(this.path, "utf-8");
-        return JSON.parse(data);
+    async getCartById(id) {
+        const carts = await this.getCarts();
+        return carts.find(c => c.id === id);
     }
 
-    async getById(id) {
-        const carts = await this.getAll();
-        return carts.find(c => c.id === Number(id)) || null;
+    async createCart(cart) {
+        const carts = await this.getCarts();
+        carts.push(cart);
+        await fs.writeFile(this.path, JSON.stringify(carts, null, 2));
     }
 
-    async add(cart = { products: [] }) {
-        const carts = await this.getAll();
-        const newCart = {
-            id: carts.length > 0 ? carts[carts.length - 1].id + 1 : 1,
-            products: cart.products
-        };
-        carts.push(newCart);
-        await fs.promises.writeFile(this.path, JSON.stringify(carts, null, 2));
-        return newCart;
-    }
+    async addProductToCart(cid, pid) {
+        const carts = await this.getCarts();
+        const cart = carts.find(c => c.id === cid);
 
-    async addProduct(cartId, productId, quantity = 1) {
-        const carts = await this.getAll();
-        const cart = carts.find(c => c.id === Number(cartId));
-        if (!cart) return null;
+        const product = cart.products.find(p => p.product === pid);
 
-        const product = await this.productManager.getById(productId);
-        if (!product) throw new Error("Producto no encontrado");
-
-        const existing = cart.products.find(p => p.productId === Number(productId));
-        if (existing) {
-            existing.quantity += quantity;
+        if (product) {
+            product.quantity++;
         } else {
-            cart.products.push({ productId: Number(productId), quantity });
+            cart.products.push({ product: pid, quantity: 1 });
         }
 
-        await fs.promises.writeFile(this.path, JSON.stringify(carts, null, 2));
-        return cart;
+        await fs.writeFile(this.path, JSON.stringify(carts, null, 2));
     }
 
-    async delete(id) {
-        const carts = await this.getAll();
-        const index = carts.findIndex(c => c.id === Number(id));
-        if (index === -1) return null;
-        const deleted = carts.splice(index, 1);
-        await fs.promises.writeFile(this.path, JSON.stringify(carts, null, 2));
-        return deleted[0];
+    async removeProductFromCart(cid, pid) {
+        const carts = await this.getCarts();
+        const cart = carts.find(c => c.id === cid);
+
+        cart.products = cart.products.filter(p => p.product !== pid);
+
+        await fs.writeFile(this.path, JSON.stringify(carts, null, 2));
+    }
+
+    async updateCart(cid, products) {
+        const carts = await this.getCarts();
+        const cart = carts.find(c => c.id === cid);
+
+        cart.products = products;
+
+        await fs.writeFile(this.path, JSON.stringify(carts, null, 2));
+    }
+
+    async updateProductQuantity(cid, pid, quantity) {
+        const carts = await this.getCarts();
+        const cart = carts.find(c => c.id === cid);
+
+        const product = cart.products.find(p => p.product === pid);
+        product.quantity = quantity;
+
+        await fs.writeFile(this.path, JSON.stringify(carts, null, 2));
+    }
+
+    async clearCart(cid) {
+        const carts = await this.getCarts();
+        const cart = carts.find(c => c.id === cid);
+
+        cart.products = [];
+
+        await fs.writeFile(this.path, JSON.stringify(carts, null, 2));
     }
 }
-
-export default CartManager;
