@@ -4,10 +4,19 @@ buttons.forEach(button => {
     button.addEventListener("click", async () => {
         const productId = button.dataset.pid;
 
-        await fetch(`/api/carts/1/products/${productId}`, {
-            method: "POST"
-        });
+        try {
+            const response = await fetch(`/api/carts/699d7eb82e1b862718cbacd4/products/${productId}`, {
+                method: "POST"
+            });
 
-        window.location.href = "/api/carts/1";
+            if (!response.ok) {
+                throw new Error("Error en la respuesta");
+            }
+
+            window.location.href = `/carts/699d7eb82e1b862718cbacd4`;
+
+        } catch (error) {
+            alert("Hubo un error al agregar el producto al carrito");
+        }
     });
 });
